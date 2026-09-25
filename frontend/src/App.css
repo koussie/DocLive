@@ -1,0 +1,11 @@
+.App {
+  text-align: left;
+}
+
+@media print {
+  header,
+  footer,
+  button {
+    display: none !important;
+  }
+}

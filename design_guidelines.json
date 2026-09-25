@@ -1,0 +1,124 @@
+{
+  "project_identity": {
+    "name": "DocLive",
+    "concept": "Plateforme médicale de prise de rendez-vous en ligne et de suivi de santé simplifiée pour travailleurs temporaires et étudiants étrangers au Québec sans carte RAMQ.",
+    "inspiration": "Doctolib.fr (adapté au contexte québécois et international)",
+    "target_audience": "Étudiants internationaux, travailleurs temporaires, résidents temporaires sans RAMQ (avec assujettissement aux assurances privées type Sun Life, Desjardins, Allianz, MSH, etc.)",
+    "tone_and_voice": "Sobre, hautement professionnel, rassurant, direct, chaleureux et institutionnel. Français québécois soigné. RÈGLE STRICTE: Aucun tiret long (—) dans la rédaction.",
+    "app_type": "hybrid_fullstack"
+  },
+  "design_archetype": {
+    "name": "Swiss Medical Professional & Reassuring Health",
+    "archetype": "ARCHETYPE 1 & ARCHETYPE 4 (Organic & Swiss High-Contrast Fusion)",
+    "description": "Fusion de bleu médical institutionnel et vert/teal santé rassurant avec des surfaces solides, nettes et lisibles. Interdiction des verres dépolis froids (glassmorphism) sur les données médicales : priorité à des fonds solides blanc pur et ardoise claire avec bordures subtiles 1px et ombres portées douces."
+  },
+  "color_system": {
+    "background": {
+      "default": "#F8FAFC",
+      "paper": "#FFFFFF",
+      "subtle": "#F1F5F9",
+      "dark_accent": "#0F172A"
+    },
+    "brand_colors": {
+      "primary_blue": "#0E46A3",
+      "primary_blue_hover": "#0B3782",
+      "primary_blue_light": "#EFF6FF",
+      "health_teal": "#0D9488",
+      "health_teal_hover": "#0F766E",
+      "health_teal_light": "#F0FDFA",
+      "emerald_success": "#059669",
+      "amber_warning": "#D97706",
+      "rose_error": "#E11D48"
+    },
+    "text_colors": {
+      "heading": "#0F172A",
+      "body": "#334155",
+      "muted": "#64748B",
+      "inverse": "#FFFFFF"
+    },
+    "borders": {
+      "subtle": "#E2E8F0",
+      "strong": "#CBD5E1",
+      "accent": "#93C5FD"
+    },
+    "contrast_rules": "APCA & WCAG AA minimum 4.5:1. Les boutons d'action principale utilisent primary_blue (#0E46A3) avec texte blanc pur. Pas de gradients sombres ni d'opacité excessive."
+  },
+  "typography": {
+    "heading_font": "'Plus Jakarta Sans', 'Outfit', sans-serif",
+    "body_font": "'DM Sans', 'Inter', sans-serif",
+    "mono_font": "'JetBrains Mono', monospace",
+    "scale": {
+      "h1_hero": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight",
+      "h2_section": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900",
+      "h3_card": "text-lg sm:text-xl font-semibold text-slate-900",
+      "body": "text-base font-normal leading-relaxed text-slate-700",
+      "small": "text-sm font-medium text-slate-500",
+      "badge": "text-xs font-semibold uppercase tracking-wider"
+    },
+    "forbidden_fonts": ["Space Grotesk", "Comic Sans"]
+  },
+  "layout_and_spacing": {
+    "grid_system": "Bento Grid et colonnes asymétriques (recherche 70% / filtres 30% sur desktop).",
+    "container_padding": "px-4 sm:px-6 lg:px-12 py-8 sm:py-12",
+    "card_padding": "p-5 sm:p-6 lg:p-8",
+    "spacing_philosophy": "Espaces généreux (2x à 3x l'espacement standard). Les conteneurs avec bordures possèdent toujours un rembourrage interne (p-6/p-8) pour éviter les collisions de texte.",
+    "mobile_rules": "Mobile-first, grille 1 colonne sur mobile, images d'une hauteur maximale de max-h-[70vh]."
+  },
+  "navigation_and_header": {
+    "structure": "Barre supérieure fixe avec fond blanc solide et flou arrière-plan imperceptible (bg-white/95 backdrop-blur-md border-b border-slate-200 z-50). Logo DocLive avec picto stéthoscope/coeur moderne, lien 'Trouver un médecin', 'Mes rendez-vous', 'Historique & Suivi', 'Profil Sans RAMQ' et bouton d'action rapide 'Prendre Rendez-vous'.",
+    "mobile_nav": "Menu tiroir latéral réactif (Sheet Shadcn) fluide."
+  },
+  "key_features_and_views": {
+    "landing_hero": {
+      "title": "Un médecin au Québec, même sans carte RAMQ.",
+      "subtitle": "Accédez en quelques clics à des consultations en médecine générale, spécialistes et cliniques privées adaptées aux étudiants étrangers et travailleurs temporaires.",
+      "search_bar": "Barre de recherche Doctolib multi-champs : Spécialité / Motif, Ville / Quartier (Montréal, Québec, Laval, Sherbrooke), Langue parlée (Français, Anglais, Espagnol, Arabe), Type de couverture (Assurance privée / Sans RAMQ)."
+    },
+    "doctor_search_results": {
+      "layout": "Filtres interactifs en haut/gauche + cartes de médecins détaillées avec calendrier de créneaux autonomes à droite.",
+      "card_elements": "Photo professionnelle, Nom du médecin, Spécialité, Langues parlées, Adresse de la clinique, Tarif indicatif consultation privée (avec mention remboursement assurance), badges 'Accepte sans RAMQ' et 'Téléconsultation disponible', grille interactive des créneaux disponibles du jour et des 3 prochains jours."
+    },
+    "doctor_profile_modal": {
+      "sections": "Présentation, diplômes, langues, tarifs et modalités de prise en charge assurances privées, avis clients vérifiés, calendrier de prise de rendez-vous complet."
+    },
+    "appointment_booking_flow": {
+      "steps": "1. Choix du motif et créneau -> 2. Information patient sans RAMQ (Numéro de permis d'études/travail, nom de l'assureur) -> 3. Confirmation instantanée avec récapitulatif téléchargeable et ajout au calendrier."
+    },
+    "medical_followup_timeline": {
+      "concept": "Fil chronologique élégant de l'historique des consultations, ordonnances numérisées, reçus pour remboursement d'assurance privée, et notes de suivi médical."
+    },
+    "patient_profile_non_ramq": {
+      "concept": "Espace dédié à la gestion du statut d'immigration au Québec (Permis d'études, Permis de travail fermé/ouvert, PVT), détails du contrat d'assurance maladie privée (ex: Croix Bleue, Sun Life, Allianz), et numéro de passeport."
+    }
+  },
+  "image_urls": {
+    "doctor_consultation_hero": "https://images.pexels.com/photos/7578798/pexels-photo-7578798.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "doctor_female_portrait": "https://images.pexels.com/photos/6749773/pexels-photo-6749773.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "doctor_male_portrait": "https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "doctor_teal_scrubs": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwxfHxzbWlsaW5nJTIwZG9jdG9yJTIwcG9ydHJhaXQlMjBudXJzZXxlbnwwfHx8fDE3OTAzMDQwMzl8MA&ixlib=rb-4.1.0&q=85",
+    "patient_consultation_scene": "https://images.pexels.com/photos/3992806/pexels-photo-3992806.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "doctor_male_office": "https://images.pexels.com/photos/28516276/pexels-photo-28516276.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "iconography_and_ui": {
+    "library": "lucide-react",
+    "forbidden": "Aucun emoji IA style 🤖, 🧠, 💡, 🔮. Utiliser des icônes SVG épurées Lucide : Stethoscope, Calendar, Clock, MapPin, Search, ShieldCheck, FileText, UserCheck, Globe, CheckCircle2, ChevronRight, Filter, AlertCircle, Sparkles.",
+    "badges": "Style pilule arrondi avec fond teinté doux et texte contrasté (ex: bg-teal-50 text-teal-700 border border-teal-200)."
+  },
+  "motion_and_interactions": {
+    "library": "framer-motion",
+    "rules": "Transitions subtiles sur hover (scale-102, shadow-md). Entrée progressive des cartes de médecins (staggered fade in/slide up). Pas de transition universelle 'transition: all' qui détruit les transforms. Utiliser transition: transform 0.2s ease, opacity 0.2s ease."
+  },
+  "testing_requirements": {
+    "mandatory_attribute": "data-testid",
+    "convention": "kebab-case axé sur le rôle fonctionnel (ex: data-testid='doctor-search-input-specialty', data-testid='booking-time-slot-btn', data-testid='patient-ramq-status-badge', data-testid='confirm-appointment-button')."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Éviter absolument l'esthétique générique IA. Créer un produit qui ressemble à une véritable application médicale haut de gamme déployée au Québec.",
+    "Ne pas utiliser de tiret long (—) dans la rédaction en français. Utiliser des virgules, des parenthèses ou des phrases structurées.",
+    "Boutons interactifs : utiliser des formes ajustées modernes avec états hover et active très distincts.",
+    "Chaque élément interactif (boutons, inputs, sélecteurs de créneaux, onglets) doit posséder un attribut data-testid.",
+    "Toutes les cartes médicales et panneaux de données doivent être solides (bg-white) avec des bordures fines (border border-slate-200) et des ombres légères.",
+    "Inclure un sélecteur dynamique de langue (Français / English) et un filtre par assurance privée (Croix Bleue, Sun Life, Desjardins, Allianz, MSH, Sans assurance / Payant direct).",
+    "Fournir une expérience démo MVP sans authentification complexe requise mais permettant d'interagir avec toutes les fonctionnalités (recherche, réservation de créneau, confirmation, historique de suivi, profil patient)."
+  ]
+}
