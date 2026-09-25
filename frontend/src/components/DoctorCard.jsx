@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Globe, ShieldCheck, Video, Star, ChevronRight } from "lucide-react";
+import { MapPin, Globe, ShieldCheck, Video, Star, ChevronRight, BadgeCheck, Navigation } from "lucide-react";
 import { Badge } from "./ui";
 
 function SlotGrid({ availability, onPick }) {
@@ -93,6 +93,12 @@ export default function DoctorCard({ doctor, index = 0, onBook, onOpen }) {
                 <MapPin size={15} className="mt-0.5 shrink-0 text-slate-400" />
                 <span>{doctor.address}</span>
               </p>
+              {doctor.distance_km != null && (
+                <p className="flex items-center gap-1.5 font-semibold text-brand-500" data-testid={`doctor-distance-${doctor.id}`}>
+                  <Navigation size={14} className="shrink-0" />
+                  <span>À {doctor.distance_km.toLocaleString("fr-CA")} km de vous</span>
+                </p>
+              )}
               <p className="flex items-center gap-1.5">
                 <Globe size={15} className="shrink-0 text-slate-400" />
                 <span>{doctor.languages.join(", ")}</span>
@@ -100,6 +106,11 @@ export default function DoctorCard({ doctor, index = 0, onBook, onOpen }) {
             </div>
 
             <div className="mt-3 flex flex-wrap gap-1.5">
+              {doctor.license?.status === "Actif" && (
+                <Badge tone="emerald" title={`Permis ${doctor.license.number}, ${doctor.license.registry}`} data-testid={`doctor-license-badge-${doctor.id}`}>
+                  <BadgeCheck size={13} /> Permis CMQ vérifié
+                </Badge>
+              )}
               {doctor.accepts_without_ramq && (
                 <Badge tone="teal">
                   <ShieldCheck size={13} /> Accepte sans RAMQ

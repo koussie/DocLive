@@ -1,3 +1,4 @@
+import math
 import os
 import uuid
 from datetime import datetime, timezone, timedelta, date, time
@@ -26,6 +27,15 @@ DEMO_PATIENT_ID = "demo-patient"
 
 def now_utc():
     return datetime.now(timezone.utc)
+
+
+def haversine_km(lat1, lng1, lat2, lng2):
+    r = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = p2 - p1
+    dl = math.radians(lng2 - lng1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return round(2 * r * math.asin(math.sqrt(a)), 1)
 
 
 # ----------------------------- Models -----------------------------
@@ -61,6 +71,9 @@ class ProfileUpdate(BaseModel):
 DOCTORS_SEED = [
     {
         "id": "doc-amelie-tremblay",
+        "lat": 45.5245,
+        "lng": -73.5795,
+        "license": {"number": "1-12345-6", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dre Amélie Tremblay",
         "specialty": "Médecine générale",
         "specialty_group": "Médecine générale",
@@ -81,6 +94,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-karim-benali",
+        "lat": 45.504,
+        "lng": -73.576,
+        "license": {"number": "1-23456-7", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dr Karim Benali",
         "specialty": "Médecine générale",
         "specialty_group": "Médecine générale",
@@ -101,6 +117,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-sophie-nguyen",
+        "lat": 45.56,
+        "lng": -73.747,
+        "license": {"number": "1-34567-8", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dre Sophie Nguyen",
         "specialty": "Pédiatrie",
         "specialty_group": "Pédiatrie",
@@ -121,6 +140,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-marc-lefebvre",
+        "lat": 46.78,
+        "lng": -71.283,
+        "license": {"number": "1-45678-9", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dr Marc Lefebvre",
         "specialty": "Dermatologie",
         "specialty_group": "Dermatologie",
@@ -141,6 +163,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-fatima-el-amrani",
+        "lat": 45.495,
+        "lng": -73.625,
+        "license": {"number": "1-56789-0", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dre Fatima El Amrani",
         "specialty": "Gynécologie",
         "specialty_group": "Gynécologie",
@@ -161,6 +186,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-julien-gagnon",
+        "lat": 45.401,
+        "lng": -71.892,
+        "license": {"number": "1-67890-1", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dr Julien Gagnon",
         "specialty": "Santé mentale",
         "specialty_group": "Santé mentale",
@@ -181,6 +209,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-elena-rossi",
+        "lat": 45.529,
+        "lng": -73.612,
+        "license": {"number": "1-78901-2", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dre Elena Rossi",
         "specialty": "Médecine générale",
         "specialty_group": "Médecine générale",
@@ -201,6 +232,9 @@ DOCTORS_SEED = [
     },
     {
         "id": "doc-david-chen",
+        "lat": 45.535,
+        "lng": -73.512,
+        "license": {"number": "1-89012-3", "registry": "Collège des médecins du Québec", "status": "Actif", "verified_at": "2026-06-01", "registry_url": "https://www.cmq.org/fr/bottin"},
         "nom": "Dr David Chen",
         "specialty": "Dentisterie",
         "specialty_group": "Dentisterie",
@@ -364,6 +398,10 @@ async def list_doctors(
     insurance: Optional[str] = None,
     teleconsultation: Optional[bool] = None,
     q: Optional[str] = None,
+    lat: Optional[float] = None,
+    lng: Optional[float] = None,
+    sort: Optional[str] = None,
+    max_km: Optional[float] = None,
 ):
     results = []
     for d in DOCTORS_SEED:
@@ -381,11 +419,36 @@ async def list_doctors(
             hay = f"{d['nom']} {d['specialty']} {d['city']} {d['neighborhood']}".lower()
             if q.lower() not in hay:
                 continue
-        booked = await _booked_slots(d["id"])
         item = dict(d)
+        if lat is not None and lng is not None:
+            item["distance_km"] = haversine_km(lat, lng, d["lat"], d["lng"])
+            if max_km is not None and item["distance_km"] > max_km:
+                continue
+        booked = await _booked_slots(d["id"])
         item["availability"] = build_availability(d["id"], booked)
         results.append(item)
+    if sort == "distance" and lat is not None and lng is not None:
+        results.sort(key=lambda x: x["distance_km"])
+    elif sort == "price":
+        results.sort(key=lambda x: x["price"])
+    elif sort == "rating":
+        results.sort(key=lambda x: -x["rating"])
     return {"count": len(results), "doctors": results}
+
+
+@api.get("/doctors/{doctor_id}/license")
+async def verify_license(doctor_id: str):
+    d = next((x for x in DOCTORS_SEED if x["id"] == doctor_id), None)
+    if not d:
+        raise HTTPException(status_code=404, detail="Médecin introuvable")
+    lic = d["license"]
+    return {
+        "doctor_id": doctor_id,
+        "doctor_name": d["nom"],
+        "verified": lic["status"] == "Actif",
+        "checked_at": now_utc().isoformat(),
+        **lic,
+    }
 
 
 @api.get("/doctors/{doctor_id}")

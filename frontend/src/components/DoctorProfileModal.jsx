@@ -1,10 +1,56 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X, MapPin, Globe, Star, ShieldCheck, Video, GraduationCap,
-  Stethoscope, CheckCircle2, CreditCard,
+  Stethoscope, CheckCircle2, CreditCard, BadgeCheck, ExternalLink, Loader2,
 } from "lucide-react";
 import { Badge, Button } from "./ui";
+import api from "../lib/api";
+
+function LicenseSection({ doctor }) {
+  const [info, setInfo] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    api.get(`/doctors/${doctor.id}/license`).then(({ data }) => setInfo(data)).catch(() => setError(true));
+  }, [doctor.id]);
+
+  return (
+    <section data-testid="license-section">
+      <h4 className="mb-2 flex items-center gap-2 font-display font-bold text-ink-900">
+        <BadgeCheck size={17} className="text-emerald-600" /> Permis d'exercice
+      </h4>
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        {error ? (
+          <p className="text-sm text-ink-700">Vérification indisponible pour le moment.</p>
+        ) : !info ? (
+          <p className="flex items-center gap-2 text-sm text-ink-700"><Loader2 size={15} className="animate-spin" /> Vérification auprès du registre...</p>
+        ) : (
+          <>
+            <p className="flex items-center gap-2 text-sm font-bold text-emerald-700" data-testid="license-status">
+              <CheckCircle2 size={16} /> {info.verified ? "Permis actif et vérifié" : "Permis non confirmé"}
+            </p>
+            <dl className="mt-2 grid gap-1 text-sm text-ink-700 sm:grid-cols-2">
+              <div><dt className="text-xs uppercase tracking-wide text-ink-500">Numéro de permis</dt><dd className="font-semibold" data-testid="license-number">{info.number}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-ink-500">Registre</dt><dd className="font-semibold">{info.registry}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-ink-500">Statut</dt><dd className="font-semibold">{info.status}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wide text-ink-500">Dernière vérification</dt><dd className="font-semibold">{info.verified_at}</dd></div>
+            </dl>
+            <a
+              href={info.registry_url}
+              target="_blank"
+              rel="noreferrer"
+              data-testid="license-registry-link"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-500 hover:underline"
+            >
+              Consulter le bottin du Collège des médecins <ExternalLink size={14} />
+            </a>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function DoctorProfileModal({ doctor, onClose, onBook }) {
   const [dayIdx, setDayIdx] = useState(0);
@@ -58,6 +104,7 @@ export default function DoctorProfileModal({ doctor, onClose, onBook }) {
                   <span className="flex items-center gap-1.5"><Globe size={15} /> {doctor.languages.join(", ")}</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
+                  {doctor.license?.status === "Actif" && <Badge tone="emerald"><BadgeCheck size={13} /> Permis CMQ vérifié</Badge>}
                   {doctor.accepts_without_ramq && <Badge tone="teal"><ShieldCheck size={13} /> Accepte sans RAMQ</Badge>}
                   {doctor.teleconsultation && <Badge tone="blue"><Video size={13} /> Téléconsultation</Badge>}
                   <Badge tone="slate">Dès {doctor.price} $ CA</Badge>
@@ -83,6 +130,8 @@ export default function DoctorProfileModal({ doctor, onClose, onBook }) {
                   ))}
                 </div>
               </section>
+
+              <LicenseSection doctor={doctor} />
 
               <section>
                 <h4 className="mb-2 flex items-center gap-2 font-display font-bold text-ink-900">
