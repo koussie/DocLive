@@ -144,6 +144,47 @@ def test_consultations(s):
         assert "receipt_amount" in c
 
 
+# ---- Receipt PDF ----
+def test_receipt_pdf_ok(s):
+    r = s.get(f"{API}/consultations/cons-1/receipt", timeout=20)
+    assert r.status_code == 200
+    assert r.headers.get("content-type", "").startswith("application/pdf")
+    cd = r.headers.get("content-disposition", "")
+    assert "attachment" in cd and "recu-doclive-" in cd and ".pdf" in cd
+    assert r.content[:4] == b"%PDF"
+    assert len(r.content) > 500
+
+
+def test_receipt_pdf_404(s):
+    r = s.get(f"{API}/consultations/inexistant/receipt", timeout=15)
+    assert r.status_code == 404
+
+
+def test_cancel_moves_to_history(s):
+    doctor_id = "doc-sophie-nguyen"
+    date_, time_ = _pick_available_slot(s, doctor_id)
+    assert date_ and time_
+    body = {
+        "doctor_id": doctor_id, "date": date_, "time": time_,
+        "motif": f"TEST_{uuid.uuid4().hex[:6]}", "type": "cabinet",
+        "patient_name": "TEST Cancel", "patient_email": "test@example.com",
+    }
+    r = s.post(f"{API}/appointments", json=body, timeout=15)
+    assert r.status_code == 200
+    appt_id = r.json()["id"]
+    # Confirm in upcoming
+    lst = s.get(f"{API}/appointments", timeout=15).json()
+    assert any(a["id"] == appt_id for a in lst["upcoming"])
+    # Cancel
+    r2 = s.put(f"{API}/appointments/{appt_id}/cancel", timeout=15)
+    assert r2.status_code == 200
+    assert r2.json()["status"] == "CANCELLED"
+    # Now in history, not upcoming
+    lst2 = s.get(f"{API}/appointments", timeout=15).json()
+    assert not any(a["id"] == appt_id for a in lst2["upcoming"])
+    assert any(a["id"] == appt_id for a in lst2["history"])
+
+
 # ---- Profile ----
 def test_profile_get_and_update(s):
     r = s.get(f"{API}/profile", timeout=15)

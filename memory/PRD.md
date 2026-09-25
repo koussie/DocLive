@@ -27,10 +27,18 @@ MVP inspiré de Doctolib pour la prise de rendez-vous médical en ligne au Québ
 ## État
 - Tests E2E backend + frontend: 100% (itération 1). Aucun bug bloquant.
 
+## Correctifs et ajouts (25 septembre 2026, itération 2)
+- Barre de recherche: sélecteurs disposés en 2x2 (accueil) ou 4 colonnes (page recherche), libellés complets lisibles, chevron positionné, bouton pleine largeur sur mobile. Plus de troncature.
+- Annulation de rendez-vous: confirmation (window.confirm), gestion d'erreur réseau avec toasts sonner (plus d'overlay d'erreur runtime), rechargement de la liste.
+- Reçu d'assurance: génération PDF réelle côté backend (reportlab) via GET /api/consultations/{id}/receipt, téléchargement direct en PDF (remplace window.print qui faisait planter la page).
+- Profil: champ Nationalité transformé en liste déroulante de 196 nationalités (frontend/src/lib/nationalities.js).
+- Toaster sonner global ajouté dans App.js.
+- Tests E2E itération 2: 100% (backend 16/16, frontend desktop + mobile).
+
 ## Backlog / Prochaines étapes
 - P1: Authentification patient (JWT ou Google Emergent) pour multi-utilisateurs réels.
 - P1: Espace médecin (agenda, gestion des créneaux réels).
 - P2: Notifications courriel de confirmation/rappel (Resend).
 - P2: Téléversement réel des ordonnances et reçus (object storage).
 - P2: Avis clients vérifiés et notation.
-- P2: Génération PDF réelle du récapitulatif et du reçu.
+- P2: Génération PDF du récapitulatif de rendez-vous (le reçu de consultation est déjà en PDF).

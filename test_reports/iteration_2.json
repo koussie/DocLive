@@ -1,0 +1,24 @@
+{
+  "summary": "Itération 2 — Validation des 4 correctifs demandés + régression du flux de réservation. Backend: 16/16 pytest OK (ajout de test_receipt_pdf_ok/404 et test_cancel_moves_to_history). Frontend Playwright desktop+mobile: (1) SearchBar 4 <select> pleinement lisibles en 2x2 (245px chacun), empilés en 4 lignes sans overflow horizontal en 390px. (2) Annulation d'un rendez-vous: window.confirm dismiss ne change rien; accept => PUT /api/appointments/{id}/cancel 200, toast sonner 'Rendez-vous annulé.', carte passe en Historique avec badge Annulé, ZERO overlay d'erreur runtime React. (3) Téléchargement de reçu: click receipt-download-cons-1 déclenche download de 'recu-doclive-2026-08-14.pdf' (application/pdf, %PDF header), toast 'Reçu téléchargé.', page reste opérationnelle (pas d'écran noir, pas de dialogue print). (4) Profil Nationalité: <select data-testid=profile-nationality> avec 196 options, valeur initiale 'Mexicaine' correcte; sélection 'Française' + profile-save-btn => PUT /api/profile 200; après reload la valeur 'Française' est persistée; restauré 'Mexicaine' à la fin. Régression rapide: POST /api/appointments 200 + booking-confirmation visible.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_doclive_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "cancel_appointment ne vérifie pas patient_id du rendez-vous — toute personne connaissant un id peut l'annuler (acceptable pour démo sans auth, à durcir si l'auth est ajoutée).",
+    "list_appointments calcule 'others' via list-difference O(n^2) — anodin à cette échelle mais préférable d'utiliser un set d'ids.",
+    "Le champ Nationalité côté profil est un <select> HTML natif ~196 options — pour un catalogue aussi long, un combobox recherche (Command/Combobox shadcn) offrirait une meilleure UX (recherche par saisie).",
+    "SearchBar utilise des <select> HTML natifs (pas shadcn Select) : c'est ce qui garantit que les libellés longs comme 'Toutes les assurances' ne sont plus tronqués — correctif validé mais style visuel diverge légèrement du reste du design system."
+  ],
+  "updated_files": ["/app/backend/tests/test_doclive_api.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Aucune (patient démo demo-patient/Maria Gonzalez).",
+  "seed_data_creation": "Aucune — test réserve un créneau libre puis l'annule; test profil restaure 'Mexicaine'. Cependant les tests précédents ont laissé quelques rendez-vous annulés dans l'historique (visibles dans /rendez-vous) — non bloquant.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Les 4 correctifs sont validés. Testids clés: search-{specialty,city,language,insurance}, search-submit-btn (hero + page variants), filter-{specialty,city,language,insurance,tele-checkbox}, slot-btn-{yyyy-mm-dd-HH:MM}, booking-{next-btn,name-input,email-input,phone-input,permit-select,insurer-select,policy-input,close-btn,back-btn}, confirm-appointment-button, booking-confirmation, cancel-appointment-{uuid}, receipt-download-cons-{n}, profile-{name,email,phone,birthdate,nationality,passport,permit,insurer,policy,coverage,save-btn}. La barre de recherche utilise des <select> HTML natifs (variant hero: grid sm:grid-cols-2 puis submit pleine largeur; variant page: 4 cols alignés). Le reçu PDF est un vrai PDF reportlab servi par GET /api/consultations/{id}/receipt.",
+  "rca of the issue": "N/A — aucun bug trouvé sur cette itération."
+}
