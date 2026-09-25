@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button, Field, Input, Select } from "../components/ui";
 import api from "../lib/api";
+import { NATIONALITIES } from "../lib/nationalities";
 
 const PERMITS = ["Permis d'études", "Permis de travail ouvert", "Permis de travail fermé", "PVT (vacances-travail)", "Résident temporaire", "Visiteur"];
 const INSURERS = ["Guard.me", "MSH", "Croix Bleue", "Sun Life", "Desjardins", "Allianz", "Sans assurance (paiement direct)"];
@@ -77,7 +78,12 @@ export default function Profile() {
             <Field label="Courriel"><Input type="email" value={form.email || ""} onChange={update("email")} data-testid="profile-email" /></Field>
             <Field label="Téléphone"><Input value={form.phone || ""} onChange={update("phone")} data-testid="profile-phone" /></Field>
             <Field label="Date de naissance"><Input type="date" value={form.birthdate || ""} onChange={update("birthdate")} data-testid="profile-birthdate" /></Field>
-            <Field label="Nationalité"><Input value={form.nationality || ""} onChange={update("nationality")} data-testid="profile-nationality" /></Field>
+            <Field label="Nationalité">
+              <Select value={form.nationality || ""} onChange={update("nationality")} data-testid="profile-nationality">
+                <option value="">Sélectionner une nationalité</option>
+                {NATIONALITIES.map((n) => <option key={n}>{n}</option>)}
+              </Select>
+            </Field>
             <Field label="Numéro de passeport"><Input value={form.passport_number || ""} onChange={update("passport_number")} data-testid="profile-passport" /></Field>
           </div>
         </section>

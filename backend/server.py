@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta, date, time
 from typing import List, Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
@@ -475,6 +475,105 @@ async def list_consultations():
         c.pop("_id", None)
         items.append(c)
     return {"consultations": items}
+
+
+def build_receipt_pdf(c: dict, patient: dict, doctor: dict) -> bytes:
+    from io import BytesIO
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import mm
+    from reportlab.pdfgen import canvas
+
+    buf = BytesIO()
+    pdf = canvas.Canvas(buf, pagesize=LETTER)
+    w, h = LETTER
+    brand = colors.HexColor("#1D4ED8")
+    ink = colors.HexColor("#0F172A")
+    muted = colors.HexColor("#64748B")
+
+    pdf.setFillColor(brand)
+    pdf.rect(0, h - 28 * mm, w, 28 * mm, stroke=0, fill=1)
+    pdf.setFillColor(colors.white)
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.drawString(20 * mm, h - 17 * mm, "DocLive")
+    pdf.setFont("Helvetica", 10)
+    pdf.drawRightString(w - 20 * mm, h - 17 * mm, "Reçu officiel de consultation médicale")
+
+    y = h - 45 * mm
+    pdf.setFillColor(ink)
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(20 * mm, y, f"Reçu no {c['id'].upper()}")
+    pdf.setFont("Helvetica", 10)
+    pdf.setFillColor(muted)
+    pdf.drawRightString(w - 20 * mm, y, f"Émis le {datetime.now(timezone.utc).date().isoformat()}")
+
+    def block(title, rows, top):
+        pdf.setFillColor(brand)
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawString(20 * mm, top, title)
+        pdf.setStrokeColor(colors.HexColor("#E2E8F0"))
+        pdf.line(20 * mm, top - 2 * mm, w - 20 * mm, top - 2 * mm)
+        yy = top - 8 * mm
+        for label, value in rows:
+            pdf.setFillColor(muted)
+            pdf.setFont("Helvetica", 9.5)
+            pdf.drawString(20 * mm, yy, label)
+            pdf.setFillColor(ink)
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(70 * mm, yy, str(value or "Non renseigné"))
+            yy -= 6.5 * mm
+        return yy - 6 * mm
+
+    y = block("Patient", [
+        ("Nom", patient.get("name")),
+        ("Courriel", patient.get("email")),
+        ("Nationalité", patient.get("nationality")),
+        ("Passeport", patient.get("passport_number")),
+        ("Statut", patient.get("permit_type")),
+        ("Assureur", patient.get("insurer")),
+        ("Numéro de police", patient.get("policy_number")),
+    ], y - 14 * mm)
+
+    y = block("Professionnel de santé", [
+        ("Médecin", c.get("doctor_name")),
+        ("Spécialité", c.get("specialty")),
+        ("Adresse", doctor.get("address")),
+    ], y)
+
+    y = block("Consultation", [
+        ("Date", c.get("date")),
+        ("Motif", c.get("motif")),
+        ("Diagnostic", c.get("diagnosis")),
+    ], y)
+
+    pdf.setFillColor(colors.HexColor("#F1F5F9"))
+    pdf.roundRect(20 * mm, y - 18 * mm, w - 40 * mm, 16 * mm, 3 * mm, stroke=0, fill=1)
+    pdf.setFillColor(ink)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(26 * mm, y - 11.5 * mm, "Montant total payé")
+    pdf.setFillColor(brand)
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawRightString(w - 26 * mm, y - 12 * mm, f"{c.get('receipt_amount', 0):.2f} $ CA")
+
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 8.5)
+    pdf.drawString(20 * mm, 22 * mm, "Consultation non couverte par la RAMQ. Ce reçu peut être soumis à votre assureur privé pour remboursement.")
+    pdf.drawString(20 * mm, 17 * mm, "DocLive, plateforme de prise de rendez-vous médical au Québec.")
+    pdf.showPage()
+    pdf.save()
+    return buf.getvalue()
+
+
+@api.get("/consultations/{cons_id}/receipt")
+async def consultation_receipt(cons_id: str):
+    c = await db.consultations.find_one({"id": cons_id, "patient_id": DEMO_PATIENT_ID})
+    if not c or not c.get("receipt_available"):
+        raise HTTPException(status_code=404, detail="Reçu introuvable")
+    patient = await db.profiles.find_one({"id": DEMO_PATIENT_ID}) or {}
+    doctor = await db.doctors.find_one({"id": c.get("doctor_id")}) or {}
+    content = build_receipt_pdf(c, patient, doctor)
+    headers = {"Content-Disposition": f'attachment; filename="recu-doclive-{c["date"]}.pdf"'}
+    return Response(content=content, media_type="application/pdf", headers=headers)
 
 
 @api.get("/profile")

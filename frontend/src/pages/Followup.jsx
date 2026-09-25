@@ -4,6 +4,7 @@ import {
   FileText, Pill, StickyNote, Receipt, Download, Stethoscope, Calendar, ClipboardList,
 } from "lucide-react";
 import { Badge } from "../components/ui";
+import { toast } from "sonner";
 import api from "../lib/api";
 
 function formatDate(d) {
@@ -19,10 +20,34 @@ function formatDate(d) {
 export default function Followup() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(null);
 
   useEffect(() => {
-    api.get("/consultations").then(({ data }) => setItems(data.consultations)).finally(() => setLoading(false));
+    api.get("/consultations")
+      .then(({ data }) => setItems(data.consultations))
+      .catch(() => toast.error("Impossible de charger votre historique."))
+      .finally(() => setLoading(false));
   }, []);
+
+  async function downloadReceipt(c) {
+    setDownloading(c.id);
+    try {
+      const { data } = await api.get(`/consultations/${c.id}/receipt`, { responseType: "blob" });
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `recu-doclive-${c.date}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("Reçu téléchargé.");
+    } catch {
+      toast.error("Le téléchargement du reçu a échoué. Veuillez réessayer.");
+    } finally {
+      setDownloading(null);
+    }
+  }
 
   const totalReceipts = items.reduce((s, c) => s + (c.receipt_amount || 0), 0);
 
@@ -89,11 +114,12 @@ export default function Followup() {
 
                   {c.receipt_available && (
                     <button
-                      onClick={() => window.print()}
+                      onClick={() => downloadReceipt(c)}
+                      disabled={downloading === c.id}
                       data-testid={`receipt-download-${c.id}`}
-                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-500 hover:gap-2.5"
+                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-500 transition-[gap] hover:gap-2.5 disabled:opacity-50"
                     >
-                      <Download size={15} /> Télécharger le reçu pour l'assurance
+                      <Download size={15} /> {downloading === c.id ? "Préparation du reçu..." : "Télécharger le reçu pour l'assurance (PDF)"}
                     </button>
                   )}
                 </div>

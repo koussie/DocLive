@@ -6,6 +6,7 @@ import {
   CalendarPlus, User, Ban,
 } from "lucide-react";
 import { Badge, Button } from "../components/ui";
+import { toast } from "sonner";
 import api from "../lib/api";
 
 function formatDate(d) {
@@ -78,16 +79,24 @@ export default function Appointments() {
 
   function load() {
     setLoading(true);
-    api.get("/appointments").then(({ data }) => setData(data)).finally(() => setLoading(false));
+    api.get("/appointments")
+      .then(({ data }) => setData(data))
+      .catch(() => toast.error("Impossible de charger vos rendez-vous. Vérifiez votre connexion."))
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => { load(); }, []);
 
   async function cancel(id) {
+    if (!window.confirm("Voulez-vous vraiment annuler ce rendez-vous ?")) return;
     setCanceling(id);
     try {
       await api.put(`/appointments/${id}/cancel`);
+      toast.success("Rendez-vous annulé.");
       load();
+    } catch (err) {
+      const msg = err?.response?.data?.detail || "L'annulation a échoué. Veuillez réessayer.";
+      toast.error(msg);
     } finally {
       setCanceling(null);
     }
