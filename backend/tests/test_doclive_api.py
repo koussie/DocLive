@@ -76,6 +76,71 @@ def test_get_doctor_404(s):
     assert r.status_code == 404
 
 
+# ---- License + distance ----
+def test_doctors_have_license_and_no_distance_without_pos(s):
+    r = s.get(f"{API}/doctors", timeout=15)
+    assert r.status_code == 200
+    docs = r.json()["doctors"]
+    for d in docs:
+        assert "lat" in d and "lng" in d
+        lic = d["license"]
+        assert lic["status"] == "Actif"
+        assert lic["registry"] == "Collège des médecins du Québec"
+        assert lic["verified_at"] and lic["registry_url"]
+        assert lic["number"]
+        assert "distance_km" not in d
+
+
+def test_doctors_sort_distance_montreal(s):
+    r = s.get(f"{API}/doctors", params={"lat": 45.5017, "lng": -73.5673, "sort": "distance"}, timeout=15)
+    assert r.status_code == 200
+    docs = r.json()["doctors"]
+    assert len(docs) == 8
+    dists = [d["distance_km"] for d in docs]
+    assert dists == sorted(dists)
+    assert docs[0]["id"] == "doc-karim-benali"
+    assert dists[0] < 2
+    assert docs[-1]["id"] == "doc-marc-lefebvre"
+    assert dists[-1] > 200
+
+
+def test_doctors_max_km(s):
+    r = s.get(f"{API}/doctors", params={"lat": 45.5017, "lng": -73.5673, "max_km": 10}, timeout=15)
+    assert r.status_code == 200
+    docs = r.json()["doctors"]
+    assert len(docs) == 5
+    for d in docs:
+        assert d["distance_km"] <= 10
+
+
+def test_doctors_sort_price(s):
+    r = s.get(f"{API}/doctors", params={"sort": "price"}, timeout=15)
+    prices = [d["price"] for d in r.json()["doctors"]]
+    assert prices == sorted(prices)
+
+
+def test_doctors_sort_rating(s):
+    r = s.get(f"{API}/doctors", params={"sort": "rating"}, timeout=15)
+    ratings = [d["rating"] for d in r.json()["doctors"]]
+    assert ratings == sorted(ratings, reverse=True)
+
+
+def test_license_ok(s):
+    r = s.get(f"{API}/doctors/doc-karim-benali/license", timeout=15)
+    assert r.status_code == 200
+    d = r.json()
+    assert d["verified"] is True
+    assert d["number"] == "1-23456-7"
+    assert d["registry"] == "Collège des médecins du Québec"
+    assert d["status"] == "Actif"
+    assert "cmq" in d["registry_url"].lower()
+
+
+def test_license_404(s):
+    r = s.get(f"{API}/doctors/inexistant/license", timeout=15)
+    assert r.status_code == 404
+
+
 # ---- Appointments ----
 def _pick_available_slot(s, doctor_id):
     r = s.get(f"{API}/doctors/{doctor_id}", timeout=15)

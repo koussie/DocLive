@@ -85,6 +85,7 @@ export default function Search() {
     const ref = REFERENCE_POINTS.find((r) => r.label === label);
     if (!ref) {
       setPosition(null);
+      setMaxKm("");
       if (sort === "distance") setSort("relevance");
       return;
     }
@@ -112,7 +113,7 @@ export default function Search() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[280px_1fr]">
         {/* Filters */}
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
             <div className="mb-4 flex items-center gap-2 text-ink-900">
               <SlidersHorizontal size={18} className="text-brand-500" />
@@ -195,7 +196,7 @@ export default function Search() {
         </aside>
 
         {/* Results */}
-        <div>
+        <div className="min-w-0">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-ink-700" data-testid="results-count">
               {loading ? "Recherche..." : `${doctors.length} médecin${doctors.length > 1 ? "s" : ""} disponible${doctors.length > 1 ? "s" : ""}`}

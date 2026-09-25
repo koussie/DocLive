@@ -35,7 +35,7 @@ def haversine_km(lat1, lng1, lat2, lng2):
     dphi = p2 - p1
     dl = math.radians(lng2 - lng1)
     a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return round(2 * r * math.asin(math.sqrt(a)), 1)
+    return 2 * r * math.asin(math.sqrt(a))
 
 
 # ----------------------------- Models -----------------------------
@@ -421,18 +421,22 @@ async def list_doctors(
                 continue
         item = dict(d)
         if lat is not None and lng is not None:
-            item["distance_km"] = haversine_km(lat, lng, d["lat"], d["lng"])
-            if max_km is not None and item["distance_km"] > max_km:
+            dist = haversine_km(lat, lng, d["lat"], d["lng"])
+            if max_km is not None and dist > max_km:
                 continue
+            item["_dist"] = dist
+            item["distance_km"] = round(dist, 1)
         booked = await _booked_slots(d["id"])
         item["availability"] = build_availability(d["id"], booked)
         results.append(item)
     if sort == "distance" and lat is not None and lng is not None:
-        results.sort(key=lambda x: x["distance_km"])
+        results.sort(key=lambda x: x["_dist"])
     elif sort == "price":
         results.sort(key=lambda x: x["price"])
     elif sort == "rating":
         results.sort(key=lambda x: -x["rating"])
+    for item in results:
+        item.pop("_dist", None)
     return {"count": len(results), "doctors": results}
 
 

@@ -35,6 +35,12 @@ MVP inspiré de Doctolib pour la prise de rendez-vous médical en ligne au Québ
 - Toaster sonner global ajouté dans App.js.
 - Tests E2E itération 2: 100% (backend 16/16, frontend desktop + mobile).
 
+## Nouveautés (25 septembre 2026, itération 3)
+- Vérification du permis d'exercice: chaque médecin porte un permis (numéro, registre CMQ, statut, date de vérification). Badge "Permis CMQ vérifié" sur les cartes et le modal, section "Permis d'exercice" avec lien vers le bottin du Collège des médecins. Endpoint GET /api/doctors/{id}/license. SIMULÉ à partir des données seed (pas d'appel au vrai registre).
+- Optimisation par distance: coordonnées lat/lng par médecin, calcul haversine côté backend (params lat, lng, sort=distance|price|rating, max_km). Panneau "Proximité" sur la page recherche: bouton "Autour de moi" (géolocalisation navigateur), points de référence de secours (6 villes/quartiers), rayon maximal, affichage "À X km de vous" sur chaque carte, sélecteur de tri.
+- Correctif responsive: cartes médecin et grille de recherche sans débordement horizontal sur mobile.
+- Tests E2E itération 3: backend 23/23, frontend 100% après correctif mobile.
+
 ## Backlog / Prochaines étapes
 - P1: Authentification patient (JWT ou Google Emergent) pour multi-utilisateurs réels.
 - P1: Espace médecin (agenda, gestion des créneaux réels).
